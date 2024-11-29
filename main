@@ -1,0 +1,133 @@
+let ball;
+let leftPaddle;
+let rightPaddle;
+
+function setup() {
+  createCanvas(600, 400);
+  ball = new Ball();
+  leftPaddle = new Paddle(true);
+  rightPaddle = new Paddle(false);
+}
+
+function draw() {
+  background(0);
+
+  // Movimento e controle das paddles
+  leftPaddle.show();
+  rightPaddle.show();
+  leftPaddle.update();
+  rightPaddle.update();
+
+  // Atualiza e mostra a bola
+  ball.update();
+  ball.show();
+
+  // Checa a colisão da bola com as paddles
+  ball.checkPaddleCollision(leftPaddle);
+  ball.checkPaddleCollision(rightPaddle);
+
+  // Exibe o placar
+  displayScore();
+}
+
+// Classe para a bola
+class Ball {
+  constructor() {
+    this.reset();
+  }
+
+  reset() {
+    this.x = width / 2;
+    this.y = height / 2;
+    this.radius = 12;
+    this.xSpeed = 5;
+    this.ySpeed = 3;
+  }
+
+  update() {
+    this.x += this.xSpeed;
+    this.y += this.ySpeed;
+
+    // Colisão com a parte superior e inferior
+    if (this.y - this.radius <= 0 || this.y + this.radius >= height) {
+      this.ySpeed *= -1;
+    }
+
+    // Se a bola sair pela esquerda ou direita, reinicia a bola
+    if (this.x - this.radius <= 0 || this.x + this.radius >= width) {
+      this.reset();
+    }
+  }
+
+  show() {
+    fill(255);
+    noStroke();
+    ellipse(this.x, this.y, this.radius * 2);
+  }
+
+  checkPaddleCollision(paddle) {
+    if (this.x - this.radius <= paddle.x + paddle.width && this.x + this.radius >= paddle.x) {
+      if (this.y > paddle.y && this.y < paddle.y + paddle.height) {
+        this.xSpeed *= -1;
+      }
+    }
+  }
+}
+
+// Classe para a paddle (barra)
+class Paddle {
+  constructor(isLeft) {
+    this.width = 20;
+    this.height = 100;
+    this.isLeft = isLeft;
+    this.reset();
+  }
+
+  reset() {
+    if (this.isLeft) {
+      this.x = 0;
+    } else {
+      this.x = width - this.width;
+    }
+    this.y = height / 2 - this.height / 2;
+    this.speed = 0;
+  }
+
+  update() {
+    if (this.isLeft) {
+      if (keyIsDown(87)) {
+        this.speed = -8; // W
+      } else if (keyIsDown(83)) {
+        this.speed = 8; // S
+      } else {
+        this.speed = 0;
+      }
+    } else {
+      if (keyIsDown(UP_ARROW)) {
+        this.speed = -8;
+      } else if (keyIsDown(DOWN_ARROW)) {
+        this.speed = 8;
+      } else {
+        this.speed = 0;
+      }
+    }
+
+    this.y += this.speed;
+
+    // Restringir movimento das paddles
+    this.y = constrain(this.y, 0, height - this.height);
+  }
+
+  show() {
+    fill(255);
+    noStroke();
+    rect(this.x, this.y, this.width, this.height);
+  }
+}
+
+function displayScore() {
+  textSize(32);
+  fill(255);
+  textAlign(CENTER, TOP);
+  text(`Pong Game`, width / 2, 10);
+}
